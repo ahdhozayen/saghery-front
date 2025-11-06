@@ -1,0 +1,103 @@
+/* Angular Material theming */
+@use '@angular/material' as mat;
+@use 'sass:map';
+@use './styles/custom-styles';
+
+/* Cairo font for Arabic UI */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+/* Include Material core styles */
+@include mat.core();
+
+/* Create color maps for Material palettes */
+$primary-color-map: (
+  50: #faf8f6,
+  100: #f3ede5,
+  200: #e6dacb,
+  300: #d4c2a8,
+  400: #c4a484,
+  500: #b87c4c,
+  600: #9e653f,
+  700: #845439,
+  800: #6b4432,
+  900: #52382a,
+  A100: #e6dacb,
+  A200: #c4a484,
+  A400: #9e653f,
+  A700: #6b4432,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: rgba(black, 0.87),
+    A400: white,
+    A700: white,
+  )
+);
+
+$accent-color-map: (
+  50: #f0f5ef,
+  100: #d9e6d7,
+  200: #b8d3b4,
+  300: #a8bba3,
+  400: #8fa28a,
+  500: #7a8d73,
+  600: #6b7a64,
+  700: #5a6655,
+  800: #4a5246,
+  900: #3a3e37,
+  A100: #b8d3b4,
+  A200: #8fa28a,
+  A400: #6b7a64,
+  A700: #4a5246,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: rgba(black, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, 0.87),
+    A200: rgba(black, 0.87),
+    A400: white,
+    A700: white,
+  )
+);
+
+/* Create Material palettes using M2 API */
+$primary-palette: mat.m2-define-palette($primary-color-map);
+$accent-palette: mat.m2-define-palette($accent-color-map);
+
+/* Create Material 2 theme (Material 3 styling can be added via CSS variables) */
+$saghery-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+  ),
+  typography: (
+    font-family: 'Cairo, Arial, sans-serif',
+  ),
+  density: -1,
+));
+
+/* Apply theme to all components */
+@include mat.all-component-themes($saghery-theme);
+
+/* Basic reset */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}

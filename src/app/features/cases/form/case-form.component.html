@@ -1,0 +1,206 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ isEditMode() ? 'تعديل الحالة' : 'حالة جديدة' }}</h1>
+      <p class="page-subtitle">{{ isEditMode() ? 'تحديث بيانات الحالة' : 'إضافة حالة جديدة إلى النظام' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-tab-group #tabGroup class="case-form-tabs">
+      <!-- Basic Information Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">
+            البيانات الأساسية
+            @if (form.touched && !basicInfoTabValid()) {
+              <mat-icon class="tab-error-icon">error</mat-icon>
+            } @else if (form.touched && basicInfoTabValid()) {
+              <mat-icon class="tab-valid-icon">check_circle</mat-icon>
+            }
+          </span>
+        </ng-template>
+        <app-basic-info-tab [form]="form" />
+      </mat-tab>
+
+      <!-- Address Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">
+            العنوان
+            @if (form.touched && !addressTabValid()) {
+              <mat-icon class="tab-error-icon">error</mat-icon>
+            } @else if (form.touched && addressTabValid()) {
+              <mat-icon class="tab-valid-icon">check_circle</mat-icon>
+            }
+          </span>
+        </ng-template>
+        <app-address-tab [form]="form" />
+      </mat-tab>
+
+      <!-- Researcher Info Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">
+            معلومات الباحث
+            @if (form.touched && !researcherInfoTabValid()) {
+              <mat-icon class="tab-error-icon">error</mat-icon>
+            }
+          </span>
+        </ng-template>
+        <app-researcher-info-tab [form]="form" />
+      </mat-tab>
+
+      <!-- Social Aspect Tab -->
+      <mat-tab label="الجانب الاجتماعي">
+        @defer (on viewport) {
+          <app-social-aspect-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Health Aspect Tab -->
+      <mat-tab label="الجانب الصحي">
+        @defer (on viewport) {
+          <app-health-aspect-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Employment & Income Tab -->
+      <mat-tab label="العمل والدخل">
+        @defer (on viewport) {
+          <app-employment-income-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Expenses Tab -->
+      <mat-tab label="المصروفات">
+        @defer (on viewport) {
+          <app-expenses-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Housing Tab -->
+      <mat-tab label="السكن">
+        @defer (on viewport) {
+          <app-housing-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Infrastructure Tab -->
+      <mat-tab label="المرافق">
+        @defer (on viewport) {
+          <app-infrastructure-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Properties & Skills Tab -->
+      <mat-tab label="الممتلكات والمهارات">
+        @defer (on viewport) {
+          <app-properties-skills-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Researcher Opinion Tab -->
+      <mat-tab label="رأي الباحث">
+        @defer (on viewport) {
+          <app-researcher-opinion-tab [form]="form" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Family Members Tab -->
+      <mat-tab label="أفراد الأسرة">
+        @defer (on viewport) {
+          <app-family-members-tab
+            [form]="form"
+            [familyMembers]="familyMembers"
+            (addMember)="addFamilyMember()"
+            (removeMember)="removeFamilyMember($event)" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Education Records Tab -->
+      <mat-tab label="سجلات التعليم">
+        @defer (on viewport) {
+          <app-education-records-tab
+            [form]="form"
+            [educationRecords]="educationRecords"
+            (addRecord)="addEducationRecord()"
+            (removeRecord)="removeEducationRecord($event)" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Health Records Tab -->
+      <mat-tab label="السجلات الصحية">
+        @defer (on viewport) {
+          <app-health-records-tab
+            [form]="form"
+            [healthRecords]="healthRecords"
+            (addRecord)="addHealthRecord()"
+            (removeRecord)="removeHealthRecord($event)" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+
+      <!-- Family Needs Tab -->
+      <mat-tab label="احتياجات الأسرة">
+        @defer (on viewport) {
+          <app-family-needs-tab
+            [form]="form"
+            [familyNeeds]="familyNeeds"
+            (addNeed)="addFamilyNeed()"
+            (removeNeed)="removeFamilyNeed($event)" />
+        } @placeholder {
+          <div class="tab-loading">جارٍ التحميل...</div>
+        }
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <div class="keyboard-shortcuts-hint">
+        <mat-icon>keyboard</mat-icon>
+        <span>اختصارات لوحة المفاتيح: Ctrl+S للحفظ، Esc للإلغاء، Ctrl+← → للتنقل بين التبويبات</span>
+      </div>
+      <div class="action-buttons">
+        <button mat-stroked-button type="button" [routerLink]="'/cases'" [disabled]="loading()">
+          إلغاء
+        </button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="!isBasicInfoValid() || loading()">
+          @if (loading()) {
+            <ng-container>
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>جارٍ الحفظ...</span>
+            </ng-container>
+          } @else {
+            <ng-container>
+              <mat-icon>save</mat-icon>
+              <span>{{ isEditMode() ? 'تحديث الحالة' : 'حفظ كمسودة' }}</span>
+            </ng-container>
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
