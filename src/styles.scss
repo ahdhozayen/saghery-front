@@ -1,10 +1,15 @@
-/* Angular Material theming */
+/* Angular Material theming - @use rules must come first */
 @use '@angular/material' as mat;
 @use 'sass:map';
 @use './styles/custom-styles';
 
 /* Cairo font for Arabic UI */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+/* Tailwind CSS v3 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Include Material core styles */
 @include mat.core();
