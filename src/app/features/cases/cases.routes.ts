@@ -8,8 +8,13 @@ export const CASES_ROUTES: Routes = [
     loadComponent: () => import('./form/case-form.component').then(m => m.CaseFormComponent),
     canDeactivate: [unsavedChangesGuard]
   },
-  { path: ':id', loadComponent: () => import('./detail/case-detail.component').then(m => m.CaseDetailComponent) },
+  {
+    path: ':id/edit',
+    loadComponent: () => import('./form/case-form.component').then(m => m.CaseFormComponent),
+    canDeactivate: [unsavedChangesGuard]
+  },
   { path: ':id/print', loadComponent: () => import('./print/case-print.component').then(m => m.CasePrintComponent) },
+  { path: ':id', loadComponent: () => import('./detail/case-detail.component').then(m => m.CaseDetailComponent) },
   { path: 'search/all', loadComponent: () => import('./search/case-search.component').then(m => m.CaseSearchComponent) }
 ];
 

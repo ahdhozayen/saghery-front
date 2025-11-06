@@ -348,6 +348,10 @@ export class CaseService {
   createCase(payload: CreateCasePayload): Observable<CreateCaseResponse> {
     return this.http.post<CreateCaseResponse>('cases/create/', payload);
   }
+
+  updateCase(id: string | number, payload: CreateCasePayload): Observable<CreateCaseResponse> {
+    return this.http.put<CreateCaseResponse>(`cases/${id}/`, payload);
+  }
 }
 
 export type { CaseItem as ICaseItem };

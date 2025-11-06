@@ -250,6 +250,21 @@ form {
   animation: fadeIn var(--transition-base);
 }
 
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--spacing-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+
+  p {
+    margin: 0;
+  }
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;
