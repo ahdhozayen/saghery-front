@@ -1,10 +1,20 @@
 .page-container {
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
   animation: fadeIn var(--transition-base);
+  direction: rtl;
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-md);
+  }
 }
 
 .page-header {
   margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-border-light);
 }
 
 .page-title {
@@ -13,13 +23,19 @@
   color: var(--color-text-primary);
   margin: 0 0 var(--spacing-xs);
   line-height: 1.2;
+  direction: rtl;
+
+  @media (max-width: 768px) {
+    font-size: var(--font-size-3xl);
+  }
 }
 
 .page-subtitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
+  direction: rtl;
 }
 
 form {
@@ -33,81 +49,144 @@ form {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  direction: rtl;
 }
 
+// Tab header with modern styling
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-header {
-  background: var(--color-surface-hover);
+  background: linear-gradient(to bottom, var(--color-surface-hover), var(--color-surface));
   border-bottom: 2px solid var(--color-border-light);
-  padding: 0;
+  padding: var(--spacing-xs) var(--spacing-md) 0;
+  position: relative;
 }
 
+// Tab labels container with smooth scrolling
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-labels {
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border-medium) transparent;
-  padding: 0 var(--spacing-md);
-}
+  padding: 0;
+  scroll-behavior: smooth;
 
-:host ::ng-deep .case-form-tabs .mat-mdc-tab-labels::-webkit-scrollbar {
-  height: 6px;
-}
+  // Hide scrollbar but keep functionality
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
 
-:host ::ng-deep .case-form-tabs .mat-mdc-tab-labels::-webkit-scrollbar-track {
-  background: transparent;
-}
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-:host ::ng-deep .case-form-tabs .mat-mdc-tab-labels::-webkit-scrollbar-thumb {
-  background: var(--color-border-medium);
-  border-radius: var(--radius-sm);
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border-medium);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-base);
 
-  &:hover {
-    background: var(--color-border-dark);
+    &:hover {
+      background: var(--color-border-dark);
+    }
   }
 }
 
+// Individual tab styling
 :host ::ng-deep .case-form-tabs .mat-mdc-tab {
-  min-width: 140px;
+  min-width: 160px;
   padding: var(--spacing-md) var(--spacing-lg);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   transition: all var(--transition-base);
   position: relative;
-  opacity: 0.8;
+  opacity: 0.75;
   margin: 0 var(--spacing-xs);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
+  text-transform: none;
+  direction: rtl;
+
+  // Hover state
+  &:hover {
+    color: var(--color-text-primary);
+    background-color: rgba(0, 0, 0, 0.04);
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+
+  // Active tab styling with animated underline
+  &.mdc-tab--active {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+    opacity: 1;
+    background-color: var(--color-surface);
+    z-index: 2;
+
+    // Remove default indicator
+    .mdc-tab__indicator {
+      display: none;
+    }
+
+    // Custom animated underline
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      animation: slideIn var(--transition-base) ease-out;
+    }
+
+    // Top border accent
+    border-top: 3px solid var(--color-primary);
+    border-left: 1px solid var(--color-border-light);
+    border-right: 1px solid var(--color-border-light);
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.08);
+  }
 }
 
-:host ::ng-deep .case-form-tabs .mat-mdc-tab:hover {
-  color: var(--color-text-primary);
-  background-color: rgba(0, 0, 0, 0.03);
-  opacity: 1;
+// Animated underline indicator
+@keyframes slideIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 80%;
+    opacity: 1;
+  }
 }
 
-:host ::ng-deep .case-form-tabs .mat-mdc-tab.mdc-tab--active {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-  opacity: 1;
-  background-color: var(--color-surface);
-  border-top: 2px solid var(--color-primary);
-  border-left: 1px solid var(--color-border-light);
-  border-right: 1px solid var(--color-border-light);
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
-  z-index: 1;
-}
-
-:host ::ng-deep .case-form-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__indicator {
-  display: none;
-}
-
+// Tab body wrapper
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-body-wrapper {
   padding: var(--spacing-xl);
   min-height: 400px;
   background: var(--color-surface);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-lg);
+    min-height: 300px;
+  }
 }
 
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-body-content {
   overflow: visible;
+  animation: fadeIn var(--transition-base);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-header-pagination {
@@ -127,7 +206,9 @@ form {
 .tab-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-xs);
+  flex-direction: row-reverse; // RTL: icon on right
 
   .tab-error-icon {
     color: var(--color-error);
@@ -168,8 +249,8 @@ form {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
@@ -178,6 +259,15 @@ form {
   position: sticky;
   bottom: var(--spacing-lg);
   z-index: 100;
+  direction: rtl;
+  margin-top: var(--spacing-lg);
+
+  @media (max-width: 768px) {
+    position: relative;
+    bottom: 0;
+    padding: var(--spacing-md);
+    flex-direction: column;
+  }
 
   .keyboard-shortcuts-hint {
     display: flex;
@@ -185,6 +275,11 @@ form {
     gap: var(--spacing-xs);
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
+    direction: rtl;
+
+    @media (max-width: 768px) {
+      display: none; // Hide on mobile for space
+    }
 
     mat-icon {
       font-size: 18px;
@@ -201,6 +296,12 @@ form {
   .action-buttons {
     display: flex;
     gap: var(--spacing-md);
+    flex-direction: row-reverse; // RTL: Cancel on right
+
+    @media (max-width: 768px) {
+      width: 100%;
+      flex-direction: column-reverse; // Stack vertically on mobile
+    }
   }
 }
 
@@ -208,23 +309,31 @@ form {
   min-width: 140px;
   padding: var(--spacing-sm) var(--spacing-lg);
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
+  direction: rtl;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: unset;
+  }
 
   &:not([disabled]) {
     box-shadow: var(--shadow-sm);
 
     &:hover {
       box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
     }
 
     &:active {
       transform: translateY(0);
+      box-shadow: var(--shadow-sm);
     }
   }
 
@@ -253,52 +362,32 @@ form {
   }
 }
 
-@media (max-width: 768px) {
-  .page-title {
-    font-size: var(--font-size-3xl);
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .page-header {
+    margin-bottom: var(--spacing-lg);
   }
+}
 
-  .page-subtitle {
-    font-size: var(--font-size-sm);
+@media (max-width: 768px) {
+  .page-header {
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
   }
 
   :host ::ng-deep .case-form-tabs .mat-mdc-tab-header {
-    padding: 0;
-  }
-
-  :host ::ng-deep .case-form-tabs .mat-mdc-tab-labels {
-    padding: 0 var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm) 0;
   }
 
   :host ::ng-deep .case-form-tabs .mat-mdc-tab {
-    min-width: 110px;
+    min-width: 120px;
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
     margin: 0 2px;
-  }
 
-  :host ::ng-deep .case-form-tabs .mat-mdc-tab-body-wrapper {
-    padding: var(--spacing-lg);
-    min-height: 300px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    padding: var(--spacing-md);
-    position: relative;
-    bottom: 0;
-
-    .keyboard-shortcuts-hint {
-      display: none; // Hide on mobile for space
-    }
-
-    .action-buttons {
-      width: 100%;
-      flex-direction: column-reverse;
-
-      button {
-        width: 100%;
-        min-width: unset;
+    &.mdc-tab--active {
+      &::after {
+        width: 70%; // Slightly smaller underline on mobile
       }
     }
   }
