@@ -276,15 +276,17 @@ export class CaseFormComponent implements OnInit, ComponentWithUnsavedChanges {
     }
   }
 
-  onSaveShortcut(event: KeyboardEvent): void {
-    event.preventDefault();
+  onSaveShortcut(event: Event): void {
+    const keyboardEvent = event as KeyboardEvent;
+    keyboardEvent.preventDefault();
     if (!this.loading() && this.isBasicInfoValid()) {
       this.onSubmit();
     }
   }
 
-  onCancelShortcut(event: KeyboardEvent): void {
-    event.preventDefault();
+  onCancelShortcut(event: Event): void {
+    const keyboardEvent = event as KeyboardEvent;
+    keyboardEvent.preventDefault();
     this.router.navigate(['/cases']);
   }
 

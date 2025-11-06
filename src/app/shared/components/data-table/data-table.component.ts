@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, Component, InputSignal, OutputEmitterRef, TemplateRef, contentChild, input, output } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ChangeDetectionStrategy, Component, InputSignal, OutputEmitterRef, TemplateRef, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+export interface PageEvent {
+  pageIndex: number;
+  pageSize: number;
+  length: number;
+}
 
 export interface ColumnDef<T = any> {
   key: string;
@@ -13,188 +16,141 @@ export interface ColumnDef<T = any> {
 
 @Component({
   selector: 'app-data-table',
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatProgressSpinnerModule],
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="table-container">
+    <div class="relative bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md animate-fadeIn" dir="rtl">
+      <!-- Loading Overlay -->
       @if (loading()) {
-        <div class="loading-overlay">
-          <mat-spinner diameter="48"></mat-spinner>
+        <div class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-10">
+          <div class="flex flex-col items-center gap-3">
+            <svg class="w-12 h-12 text-primary-500 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm text-gray-600">جاري التحميل...</span>
+          </div>
         </div>
       }
 
-      <div class="table-wrapper">
-        <table mat-table [dataSource]="rows()" class="modern-table">
-          @for (col of columns(); track col.key) {
-            <ng-container [matColumnDef]="col.key">
-              <th mat-header-cell *matHeaderCellDef [style.width]="col.width">
-                {{ col.header }}
-              </th>
-              <td mat-cell *matCellDef="let row; let i = index">
-                @if (col.cellTemplate) {
-                  <ng-container *ngTemplateOutlet="col.cellTemplate; context: { $implicit: row, index: i }"></ng-container>
-                } @else {
-                  {{ row[col.key] }}
-                }
-              </td>
-            </ng-container>
-          }
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
-
-          @if (!loading() && rows().length === 0) {
-            <tr class="mat-row empty-row">
-              <td [attr.colspan]="columns().length" class="empty-state">
-                <div class="empty-content">
-                  <div class="empty-icon">📋</div>
-                  <h3>{{ emptyMessage() }}</h3>
-                  <p>{{ emptySubMessage() }}</p>
-                </div>
-              </td>
+      <!-- Table Wrapper -->
+      <div class="overflow-x-auto">
+        <table class="w-full bg-white">
+          <!-- Table Header -->
+          <thead class="bg-gray-50 border-b-2 border-gray-200">
+            <tr>
+              @for (col of columns(); track col.key) {
+                <th 
+                  class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                  [style.width]="col.width">
+                  {{ col.header }}
+                </th>
+              }
             </tr>
-          }
+          </thead>
+
+          <!-- Table Body -->
+          <tbody class="bg-white divide-y divide-gray-200">
+            @if (!loading() && rows().length > 0) {
+              @for (row of rows(); track $index) {
+                <tr class="hover:bg-gray-50 transition-colors duration-150 even:bg-gray-50/30">
+                  @for (col of columns(); track col.key) {
+                    <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      @if (col.cellTemplate) {
+                        <ng-container *ngTemplateOutlet="col.cellTemplate; context: { $implicit: row, index: $index }"></ng-container>
+                      } @else {
+                        {{ getRowValue(row, col.key) }}
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            }
+
+            <!-- Empty State -->
+            @if (!loading() && rows().length === 0) {
+              <tr>
+                <td [attr.colspan]="columns().length" class="px-6 py-16 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="text-5xl opacity-50">📋</div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ emptyMessage() }}</h3>
+                    <p class="text-sm text-gray-600">{{ emptySubMessage() }}</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
         </table>
       </div>
 
-      @if (showPagination()) {
-        <mat-paginator
-          [length]="total()"
-          [pageSize]="pageSize()"
-          [pageSizeOptions]="pageSizeOptions()"
-          (page)="onPageChange($event)"
-          class="modern-paginator">
-        </mat-paginator>
+      <!-- Pagination -->
+      @if (showPagination() && total() > 0) {
+        <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Page Info -->
+          <div class="text-sm text-gray-700">
+            عرض 
+            <span class="font-medium">{{ startIndex() }}</span>
+            إلى 
+            <span class="font-medium">{{ endIndex() }}</span>
+            من 
+            <span class="font-medium">{{ total() }}</span>
+            نتيجة
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="flex items-center gap-2">
+            <!-- Page Size Selector -->
+            <select
+              [value]="pageSize()"
+              (change)="onPageSizeChange($event)"
+              class="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+            >
+              @for (size of pageSizeOptions(); track size) {
+                <option [value]="size">{{ size }}</option>
+              }
+            </select>
+
+            <!-- Previous Button -->
+            <button
+              (click)="goToPreviousPage()"
+              [disabled]="currentPage() === 1"
+              class="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              السابق
+            </button>
+
+            <!-- Page Numbers -->
+            <div class="flex items-center gap-1">
+              @for (pageNum of visiblePages(); track pageNum) {
+                @if (pageNum === '...') {
+                  <span class="px-2 py-1 text-sm text-gray-500">...</span>
+                } @else {
+                  <button
+                    (click)="goToPage(typeof pageNum === 'number' ? pageNum : 1)"
+                    [class.bg-primary-500]="pageNum === currentPage()"
+                    [class.text-white]="pageNum === currentPage()"
+                    [class.text-gray-700]="pageNum !== currentPage()"
+                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors min-w-[40px]"
+                  >
+                    {{ pageNum }}
+                  </button>
+                }
+              }
+            </div>
+
+            <!-- Next Button -->
+            <button
+              (click)="goToNextPage()"
+              [disabled]="currentPage() === totalPages()"
+              class="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              التالي
+            </button>
+          </div>
+        </div>
       }
     </div>
-  `,
-  styles: [`
-    .table-container {
-      position: relative;
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--color-border-light);
-      overflow: hidden;
-      animation: fadeIn var(--transition-base);
-    }
-
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      backdrop-filter: blur(2px);
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      overflow-y: visible;
-    }
-
-    .modern-table {
-      width: 100%;
-      background: var(--color-surface);
-
-      .mat-mdc-header-row {
-        background: var(--color-surface-hover);
-        border-bottom: 2px solid var(--color-border-light);
-
-        th {
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-text-primary);
-          font-size: var(--font-size-sm);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          padding: var(--spacing-md) var(--spacing-lg);
-        }
-      }
-
-      .mat-mdc-row {
-        transition: all var(--transition-fast);
-        border-bottom: 1px solid var(--color-border-light);
-
-        &:hover {
-          background-color: var(--color-surface-hover);
-          transform: scale(1.001);
-        }
-
-        &:last-child {
-          border-bottom: none;
-        }
-
-        &:nth-child(even) {
-          background-color: rgba(251, 246, 233, 0.2);
-        }
-
-        td {
-          padding: var(--spacing-md) var(--spacing-lg);
-          color: var(--color-text-primary);
-          font-size: var(--font-size-base);
-        }
-      }
-
-      .empty-row {
-        td {
-          padding: var(--spacing-3xl) var(--spacing-lg);
-          text-align: center;
-        }
-      }
-    }
-
-    .empty-state {
-      .empty-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-md);
-        padding: var(--spacing-xl);
-
-        .empty-icon {
-          font-size: 48px;
-          opacity: 0.5;
-        }
-
-        h3 {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-text-primary);
-          margin: 0;
-        }
-
-        p {
-          font-size: var(--font-size-base);
-          color: var(--color-text-secondary);
-          margin: 0;
-        }
-      }
-    }
-
-    .modern-paginator {
-      border-top: 1px solid var(--color-border-light);
-      background: var(--color-surface);
-    }
-
-    @media (max-width: 768px) {
-      .modern-table {
-        .mat-mdc-header-row th,
-        .mat-mdc-row td {
-          padding: var(--spacing-sm) var(--spacing-md);
-          font-size: var(--font-size-sm);
-        }
-      }
-
-      .table-container {
-        border-radius: var(--radius-md);
-      }
-    }
-  `]
+  `
 })
 export class DataTableComponent<T = any> {
   readonly columns = input.required<ColumnDef<T>[]>();
@@ -206,17 +162,92 @@ export class DataTableComponent<T = any> {
   readonly emptyMessage = input<string>('لا توجد بيانات');
   readonly emptySubMessage = input<string>('لم يتم العثور على أي سجلات');
   readonly showPagination = input<boolean>(true);
+  readonly currentPageIndex = input<number>(0);
 
   readonly page: OutputEmitterRef<PageEvent> = output<PageEvent>();
 
-  displayedColumns(): string[] {
-    return this.columns().map(c => c.key);
+  // Computed values for pagination
+  readonly currentPage = computed(() => this.currentPageIndex() + 1);
+  readonly totalPages = computed(() => Math.ceil(this.total() / this.pageSize()));
+  readonly startIndex = computed(() => {
+    if (this.total() === 0) return 0;
+    return (this.currentPageIndex() * this.pageSize()) + 1;
+  });
+  readonly endIndex = computed(() => {
+    const end = (this.currentPageIndex() + 1) * this.pageSize();
+    return Math.min(end, this.total());
+  });
+
+  readonly visiblePages = computed(() => {
+    const current = this.currentPage();
+    const total = this.totalPages();
+    const pages: (number | string)[] = [];
+
+    if (total <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (current > 3) {
+        pages.push('...');
+      }
+
+      // Show pages around current
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (current < total - 2) {
+        pages.push('...');
+      }
+
+      // Always show last page
+      pages.push(total);
+    }
+
+    return pages;
+  });
+
+  onPageSizeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const newPageSize = parseInt(target.value, 10);
+    this.page.emit({
+      pageIndex: 0,
+      pageSize: newPageSize,
+      length: this.total()
+    });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.page.emit(event);
+  goToPage(pageNum: number): void {
+    this.page.emit({
+      pageIndex: pageNum - 1,
+      pageSize: this.pageSize(),
+      length: this.total()
+    });
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage() > 1) {
+      this.goToPage(this.currentPage() - 1);
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.goToPage(this.currentPage() + 1);
+    }
+  }
+
+  getRowValue(row: T, key: string): any {
+    return (row as Record<string, any>)[key];
   }
 }
 
 export { DataTableComponent as DataTable };
-
