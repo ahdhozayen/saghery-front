@@ -57,60 +57,74 @@ form {
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-header {
   background: linear-gradient(to bottom, var(--color-surface-hover), var(--color-surface));
   border-bottom: 2px solid var(--color-border-light);
-  padding: var(--spacing-xs) var(--spacing-md) 0;
+  padding: var(--spacing-xs) 0 0;
   position: relative;
+  overflow-x: visible;
+  overflow-y: visible;
 }
 
-// Tab labels container with smooth scrolling
+// Tab header container - ensure all tabs are visible and allow wrapping
+:host ::ng-deep .case-form-tabs .mat-mdc-tab-header .mat-mdc-tab-header-pagination-controls-enabled {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+// Tab labels container - make tabs fit without scrolling and wrap
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-labels {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border-medium) transparent;
-  padding: 0;
-  scroll-behavior: smooth;
-
-  // Hide scrollbar but keep functionality
-  &::-webkit-scrollbar {
-    height: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-border-medium);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-base);
-
-    &:hover {
-      background: var(--color-border-dark);
-    }
-  }
+  display: flex !important;
+  flex-wrap: wrap !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
-// Individual tab styling
+// Individual tab styling - compact and flexible, allow wrapping
 :host ::ng-deep .case-form-tabs .mat-mdc-tab {
-  min-width: 160px;
-  padding: var(--spacing-md) var(--spacing-lg);
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 0 1 auto !important;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
   font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   transition: all var(--transition-base);
   position: relative;
   opacity: 0.75;
-  margin: 0 var(--spacing-xs);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  margin: 0 !important;
+  border-radius: 0;
   text-transform: none;
   direction: rtl;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  width: auto !important;
+
+  // Ensure tab content fits
+  .mdc-tab__content {
+    padding: 0 var(--spacing-xs) !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+
+  .mdc-tab__text-label {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    min-width: 0 !important;
+    width: auto !important;
+  }
 
   // Hover state
   &:hover {
     color: var(--color-text-primary);
     background-color: rgba(0, 0, 0, 0.04);
     opacity: 1;
-    transform: translateY(-2px);
   }
 
   // Active tab styling with animated underline
@@ -131,9 +145,9 @@ form {
       content: '';
       position: absolute;
       bottom: -2px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
+      left: 0;
+      right: 0;
+      width: 100%;
       height: 3px;
       background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
       border-radius: var(--radius-sm) var(--radius-sm) 0 0;
@@ -189,18 +203,9 @@ form {
   }
 }
 
+// Hide pagination arrows since we're wrapping tabs
 :host ::ng-deep .case-form-tabs .mat-mdc-tab-header-pagination {
-  background: var(--color-surface-hover);
-  border: none;
-  box-shadow: none;
-}
-
-:host ::ng-deep .case-form-tabs .mat-mdc-tab-header-pagination-chevron {
-  border-color: var(--color-text-secondary);
-}
-
-:host ::ng-deep .case-form-tabs .mat-mdc-tab-header-pagination-disabled .mat-mdc-tab-header-pagination-chevron {
-  opacity: 0.3;
+  display: none !important;
 }
 
 .tab-label {
@@ -380,15 +385,31 @@ form {
   }
 
   :host ::ng-deep .case-form-tabs .mat-mdc-tab {
-    min-width: 120px;
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-sm);
-    margin: 0 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    margin: 0;
+
+    .mdc-tab__content {
+      padding: 0 4px;
+    }
 
     &.mdc-tab--active {
       &::after {
-        width: 70%; // Slightly smaller underline on mobile
+        height: 2px;
       }
+    }
+  }
+
+  .tab-label {
+    font-size: var(--font-size-xs);
+    
+    .tab-error-icon,
+    .tab-valid-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
     }
   }
 }

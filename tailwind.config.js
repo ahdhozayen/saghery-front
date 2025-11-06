@@ -9,6 +9,7 @@ module.exports = {
       colors: {
         // Primary colors
         primary: {
+          DEFAULT: '#b87c4c', // Main brand color
           50: '#faf8f6',
           100: '#f3ede5',
           200: '#e6dacb',
