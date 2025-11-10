@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components/header/header.component';
 import { FooterComponent } from '../components/footer/footer.component';
 import { NavbarComponent, NavLink } from '../components/navbar/navbar.component';
+import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
   selector: 'app-shell',
@@ -55,7 +56,7 @@ import { NavbarComponent, NavLink } from '../components/navbar/navbar.component'
   template: `
     <div class="layout">
       <app-header>
-        <app-navbar [items]="navItems" />
+        <app-navbar [items]="navItems()" />
       </app-header>
       <div class="content">
         <div class="main-content">
@@ -69,11 +70,16 @@ import { NavbarComponent, NavLink } from '../components/navbar/navbar.component'
   `
 })
 export class ShellComponent {
-  readonly navItems: NavLink[] = [
-    { label: 'الحالات', icon: 'folder_open', link: '/cases' },
-    { label: 'حالة جديدة', icon: 'add_circle', link: '/cases/new' },
-    { label: 'المستخدمين', icon: 'group', link: '/users' },
-  ];
+  private readonly translation = inject(TranslationService);
+  
+  readonly navItems = computed<NavLink[]>(() => {
+    const t = this.translation.t();
+    return [
+      { label: t.cases, icon: 'folder_open', link: '/cases' },
+      { label: t.newCase, icon: 'add_circle', link: '/cases/new' },
+      { label: t.users, icon: 'group', link: '/users' },
+    ];
+  });
 }
 
 export { ShellComponent as Shell };

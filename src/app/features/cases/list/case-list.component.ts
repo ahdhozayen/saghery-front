@@ -7,6 +7,7 @@ import { PageEvent } from '../../../shared/components/data-table/data-table.comp
 import { RouterLink } from '@angular/router';
 import { combineLatest, debounceTime, finalize, map, startWith, switchMap, tap } from 'rxjs';
 import { DataTableComponent, ColumnDef } from '../../../shared/components/data-table/data-table.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-case-list',
@@ -14,7 +15,8 @@ import { DataTableComponent, ColumnDef } from '../../../shared/components/data-t
     CommonModule,
     ReactiveFormsModule,
     DataTableComponent,
-    RouterLink
+    RouterLink,
+    MatSnackBarModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -202,16 +204,16 @@ import { DataTableComponent, ColumnDef } from '../../../shared/components/data-t
                 </svg>
                 <span>تعديل</span>
               </a>
-              <a
-                [routerLink]="['/cases', row.id, 'print']"
-                (click)="closeMenu()"
-                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              <button
+                type="button"
+                (click)="printCase(row.id); closeMenu()"
+                class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-right"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 <span>طباعة</span>
-              </a>
+              </button>
             </div>
           }
         </div>
@@ -221,6 +223,7 @@ import { DataTableComponent, ColumnDef } from '../../../shared/components/data-t
 })
 export class CaseListComponent implements AfterViewInit {
   private readonly api = inject(CaseService);
+  private readonly snackBar = inject(MatSnackBar);
 
   @ViewChild('caseCodeTemplate') caseCodeTemplate!: TemplateRef<any>;
   @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
@@ -342,6 +345,41 @@ export class CaseListComponent implements AfterViewInit {
     if (!target.closest('.relative')) {
       this.closeMenu();
     }
+  }
+
+  printCase(id: number): void {
+    this.api.printCase(id).subscribe({
+      next: (blob: Blob) => {
+        // Create a blob URL and open it in a new window
+        const url = window.URL.createObjectURL(blob);
+        const newWindow = window.open(url, '_blank');
+        
+        if (!newWindow) {
+          // If popup was blocked, fallback to download
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `case-${id}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } else {
+          // Clean up the URL after the window is closed or after a delay
+          newWindow.addEventListener('load', () => {
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error printing case:', error);
+        this.snackBar.open('حدث خطأ أثناء طباعة الحالة', 'إغلاق', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
   }
 }
 

@@ -6,7 +6,13 @@
     </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (loading() && isEditMode()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>جار تحميل بيانات الحالة...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <mat-tab-group #tabGroup class="case-form-tabs">
       <!-- Basic Information Tab -->
       <mat-tab>
@@ -202,5 +208,6 @@
       </div>
     </div>
   </form>
+  }
 </div>
 

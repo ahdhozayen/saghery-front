@@ -1,18 +1,20 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
+import { TranslationService } from '../../core/services/translation.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-dashboard',
   imports: [CommonModule, MatCardModule, MatTableModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="dashboard">
+    <div class="dashboard" [dir]="languageService.isRTL() ? 'rtl' : 'ltr'">
       <header class="page-header">
         <div>
-          <h1 class="page-title">لوحة التحكم</h1>
-          <p class="page-subtitle">نظرة شاملة على أداء النظام والبيانات الإحصائية</p>
+          <h1 class="page-title">{{ t().dashboardTitle }}</h1>
+          <p class="page-subtitle">{{ t().dashboardSubtitle }}</p>
         </div>
       </header>
 
@@ -20,7 +22,7 @@ import { CommonModule } from '@angular/common';
         <div class="stat-card stat-primary">
           <div class="stat-content">
             <div class="stat-info">
-              <h6 class="stat-label">إجمالي الحالات</h6>
+              <h6 class="stat-label">{{ t().totalCases }}</h6>
               <h2 class="stat-value">{{ stats().totalCases }}</h2>
             </div>
             <div class="stat-icon">
@@ -32,47 +34,47 @@ import { CommonModule } from '@angular/common';
         <div class="stat-card stat-success">
           <div class="stat-content">
             <div class="stat-info">
-              <h6 class="stat-label">موافق عليها</h6>
+              <h6 class="stat-label">{{ t().approved }}</h6>
               <h2 class="stat-value">{{ stats().approved.count }}</h2>
             </div>
             <div class="stat-icon">
               <span>✅</span>
             </div>
           </div>
-          <div class="stat-footer">{{ stats().approved.percentage }}% من الإجمالي</div>
+          <div class="stat-footer">{{ stats().approved.percentage }}% {{ t().ofTotal }}</div>
         </div>
 
         <div class="stat-card stat-warning">
           <div class="stat-content">
             <div class="stat-info">
-              <h6 class="stat-label">قيد المراجعة</h6>
+              <h6 class="stat-label">{{ t().underReview }}</h6>
               <h2 class="stat-value">{{ stats().underReview.count }}</h2>
             </div>
             <div class="stat-icon">
               <span>⏱️</span>
             </div>
           </div>
-          <div class="stat-footer">{{ stats().underReview.percentage }}% من الإجمالي</div>
+          <div class="stat-footer">{{ stats().underReview.percentage }}% {{ t().ofTotal }}</div>
         </div>
 
         <div class="stat-card stat-info">
           <div class="stat-content">
             <div class="stat-info">
-              <h6 class="stat-label">إجمالي الاحتياجات</h6>
+              <h6 class="stat-label">{{ t().totalNeeds }}</h6>
               <h2 class="stat-value">{{ stats().totalNeeds }}</h2>
             </div>
             <div class="stat-icon">
               <span>🤝</span>
             </div>
           </div>
-          <div class="stat-footer">{{ stats().unfulfilled }} غير منفذة ({{ stats().unfulfilledPct }}%)</div>
+          <div class="stat-footer">{{ stats().unfulfilled }} {{ t().unfulfilled }} ({{ stats().unfulfilledPct }}%)</div>
         </div>
       </div>
 
       <div class="content-grid">
         <mat-card class="modern-card" appearance="outlined">
           <div class="card-header">
-            <h3 class="card-title">توزيع احتياجات الأسر</h3>
+            <h3 class="card-title">{{ t().familyNeedsDistribution }}</h3>
           </div>
           <div class="card-body">
             <div class="chips-container">
@@ -83,7 +85,7 @@ import { CommonModule } from '@angular/common';
                 </div>
               }
               @empty {
-                <div class="empty-state">لا توجد احتياجات مسجلة</div>
+                <div class="empty-state">{{ t().noNeedsRegistered }}</div>
               }
             </div>
           </div>
@@ -91,7 +93,7 @@ import { CommonModule } from '@angular/common';
 
         <mat-card class="modern-card" appearance="outlined">
           <div class="card-header">
-            <h3 class="card-title">توزيع الحالات حسب الحالة</h3>
+            <h3 class="card-title">{{ t().caseStatusDistribution }}</h3>
           </div>
           <div class="card-body">
             <div class="chips-container">
@@ -102,7 +104,7 @@ import { CommonModule } from '@angular/common';
                 </div>
               }
               @empty {
-                <div class="empty-state">لا توجد بيانات</div>
+                <div class="empty-state">{{ t().noData }}</div>
               }
             </div>
           </div>
@@ -111,26 +113,26 @@ import { CommonModule } from '@angular/common';
 
       <mat-card class="modern-card table-card" appearance="outlined">
         <div class="card-header">
-          <h3 class="card-title">أكثر الاحتياجات طلباً</h3>
+          <h3 class="card-title">{{ t().mostRequestedNeeds }}</h3>
         </div>
         <div class="card-body">
           <table mat-table [dataSource]="needs()" class="modern-table">
             <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>نوع الاحتياج</th>
+              <th mat-header-cell *matHeaderCellDef>{{ t().needType }}</th>
               <td mat-cell *matCellDef="let row">{{ row.type }}</td>
             </ng-container>
             <ng-container matColumnDef="total">
-              <th mat-header-cell *matHeaderCellDef>إجمالي الطلبات</th>
+              <th mat-header-cell *matHeaderCellDef>{{ t().totalRequests }}</th>
               <td mat-cell *matCellDef="let row">{{ row.total }}</td>
             </ng-container>
             <ng-container matColumnDef="fulfilled">
-              <th mat-header-cell *matHeaderCellDef>منفذة</th>
+              <th mat-header-cell *matHeaderCellDef>{{ t().fulfilled }}</th>
               <td mat-cell *matCellDef="let row">
                 <span class="table-badge badge-success">{{ row.fulfilled }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="pending">
-              <th mat-header-cell *matHeaderCellDef>قيد التنفيذ</th>
+              <th mat-header-cell *matHeaderCellDef>{{ t().pending }}</th>
               <td mat-cell *matCellDef="let row">
                 <span class="table-badge badge-warning">{{ row.pending }}</span>
               </td>
@@ -144,7 +146,7 @@ import { CommonModule } from '@angular/common';
       <div class="content-grid">
         <mat-card class="modern-card" appearance="outlined">
           <div class="card-header">
-            <h3 class="card-title">التوزيع الجغرافي</h3>
+            <h3 class="card-title">{{ t().geographicDistribution }}</h3>
           </div>
           <div class="card-body">
             <div class="list-container">
@@ -155,7 +157,7 @@ import { CommonModule } from '@angular/common';
                 </div>
               }
               @empty {
-                <div class="empty-state">لا توجد بيانات</div>
+                <div class="empty-state">{{ t().noData }}</div>
               }
             </div>
           </div>
@@ -163,25 +165,25 @@ import { CommonModule } from '@angular/common';
 
         <mat-card class="modern-card" appearance="outlined">
           <div class="card-header">
-            <h3 class="card-title">الإحصائيات المالية</h3>
+            <h3 class="card-title">{{ t().financialStatistics }}</h3>
           </div>
           <div class="card-body">
             <div class="financial-grid">
               <div class="financial-item">
-                <span class="financial-label">متوسط الدخل الشهري</span>
-                <h3 class="financial-value success">{{ financial().avgIncome }} جنيه</h3>
+                <span class="financial-label">{{ t().avgMonthlyIncome }}</span>
+                <h3 class="financial-value success">{{ financial().avgIncome }} {{ t().egp }}</h3>
               </div>
               <div class="financial-item">
-                <span class="financial-label">متوسط المصروفات</span>
-                <h3 class="financial-value danger">{{ financial().avgExpenses }} جنيه</h3>
+                <span class="financial-label">{{ t().avgExpenses }}</span>
+                <h3 class="financial-value danger">{{ financial().avgExpenses }} {{ t().egp }}</h3>
               </div>
               <div class="financial-item">
-                <span class="financial-label">متوسط صافي الدخل</span>
-                <h3 class="financial-value info">{{ financial().avgNetIncome }} جنيه</h3>
+                <span class="financial-label">{{ t().avgNetIncome }}</span>
+                <h3 class="financial-value info">{{ financial().avgNetIncome }} {{ t().egp }}</h3>
               </div>
               <div class="financial-item">
-                <span class="financial-label">إجمالي الديون</span>
-                <h3 class="financial-value warning">{{ financial().totalDebt }} جنيه</h3>
+                <span class="financial-label">{{ t().totalDebt }}</span>
+                <h3 class="financial-value warning">{{ financial().totalDebt }} {{ t().egp }}</h3>
               </div>
             </div>
           </div>
@@ -497,6 +499,9 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class DashboardComponent {
+  protected readonly t = inject(TranslationService).t;
+  protected readonly languageService = inject(LanguageService);
+  
   readonly stats = signal({
     totalCases: 0,
     approved: { count: 0, percentage: 0 },
