@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { SessionStore } from '../../../core/state/session.store';
 import { AuthService } from '../../../core/services/auth.service';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-header',
@@ -63,7 +65,8 @@ import { AuthService } from '../../../core/services/auth.service';
       flex: 1;
     }
 
-    .user-btn {
+    .user-btn,
+    .lang-btn {
       width: 40px;
       height: 40px;
       padding: 0;
@@ -77,6 +80,19 @@ import { AuthService } from '../../../core/services/auth.service';
       &:focus-visible {
         outline: 2px solid rgba(255, 255, 255, 0.5);
         outline-offset: 2px;
+      }
+    }
+
+    .lang-btn {
+      .lang-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 20px;
+        font-weight: var(--font-weight-semibold);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     }
 
@@ -196,7 +212,7 @@ import { AuthService } from '../../../core/services/auth.service';
     }
   `],
   template: `
-    <mat-toolbar color="primary" class="header" dir="rtl">
+    <mat-toolbar color="primary" class="header" [dir]="languageService.isRTL() ? 'rtl' : 'ltr'">
       @if (session.isAuthenticated()) {
         <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-btn" aria-label="User menu">
           <div class="avatar"><mat-icon>person</mat-icon></div>
@@ -211,18 +227,21 @@ import { AuthService } from '../../../core/services/auth.service';
           <mat-divider></mat-divider>
           <button mat-menu-item [routerLink]="'/users/profile'">
             <mat-icon class="mi">account_circle</mat-icon>
-            <span>الملف الشخصي</span>
+            <span>{{ t().profile }}</span>
           </button>
           <button mat-menu-item [routerLink]="'/users/change-password'">
             <mat-icon class="mi">lock</mat-icon>
-            <span>تغيير كلمة المرور</span>
+            <span>{{ t().changePassword }}</span>
           </button>
           <button mat-menu-item (click)="onLogout()">
             <mat-icon class="mi">logout</mat-icon>
-            <span>تسجيل الخروج</span>
+            <span>{{ t().logout }}</span>
           </button>
         </mat-menu>
       }
+      <button mat-icon-button (click)="toggleLanguage()" class="lang-btn" [attr.aria-label]="languageService.currentLanguage() === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'">
+        <div class="lang-icon">{{ languageService.currentLanguage() === 'ar' ? 'EN' : 'AR' }}</div>
+      </button>
       <ng-content />
       <span class="spacer"></span>
       <a class="brand" [routerLink]="homeLink()">
@@ -235,12 +254,18 @@ import { AuthService } from '../../../core/services/auth.service';
 export class HeaderComponent {
   protected readonly session = inject(SessionStore);
   readonly homeLink = input<string>('/');
+  protected readonly languageService = inject(LanguageService);
+  protected readonly t = inject(TranslationService).t;
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   onLogout(): void {
     this.auth.logout();
     this.router.navigateByUrl('/login');
+  }
+
+  toggleLanguage(): void {
+    this.languageService.toggleLanguage();
   }
 }
 

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 export interface CaseItem {
@@ -351,6 +351,12 @@ export class CaseService {
 
   updateCase(id: string | number, payload: CreateCasePayload): Observable<CreateCaseResponse> {
     return this.http.put<CreateCaseResponse>(`cases/${id}/`, payload);
+  }
+
+  printCase(id: string | number): Observable<Blob> {
+    return this.http.get(`cases/${id}/print/`, {
+      responseType: 'blob'
+    });
   }
 }
 
