@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { SessionStore } from '../state/session.store';
 import { APP_CONFIG, IAppConfig } from '../config/app-config.token';
 
-export interface LoginRequest { email: string; password: string; }
-export interface AuthUser { id: number; fullName: string; role: string; email: string; }
+export interface LoginRequest { username: string; password: string; }
+export interface AuthUser { id: number; fullName: string; role: string; email?: string; username: string; }
 export interface LoginResponse { access: string; refresh: string; user: AuthUser }
 
 @Injectable({ providedIn: 'root' })

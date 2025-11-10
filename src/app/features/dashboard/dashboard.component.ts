@@ -1,13 +1,16 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { TranslationService } from '../../core/services/translation.service';
 import { LanguageService } from '../../core/services/language.service';
+import { DashboardService } from '../../core/services/dashboard.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, MatCardModule, MatTableModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatProgressSpinnerModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="dashboard" [dir]="languageService.isRTL() ? 'rtl' : 'ltr'">
@@ -17,6 +20,13 @@ import { LanguageService } from '../../core/services/language.service';
           <p class="page-subtitle">{{ t().dashboardSubtitle }}</p>
         </div>
       </header>
+
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p class="loading-text">جاري تحميل البيانات...</p>
+        </div>
+      } @else {
 
       <div class="stats-grid">
         <div class="stat-card stat-primary">
@@ -189,6 +199,7 @@ import { LanguageService } from '../../core/services/language.service';
           </div>
         </mat-card>
       </div>
+      }
     </div>
   `,
   styles: [`
@@ -478,6 +489,21 @@ import { LanguageService } from '../../core/services/language.service';
       font-size: var(--font-size-base);
     }
 
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-4xl);
+      gap: var(--spacing-lg);
+
+      .loading-text {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-base);
+        margin: 0;
+      }
+    }
+
     @media (max-width: 768px) {
       .dashboard {
         padding: var(--spacing-md);
@@ -498,9 +524,12 @@ import { LanguageService } from '../../core/services/language.service';
     }
   `]
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   protected readonly t = inject(TranslationService).t;
   protected readonly languageService = inject(LanguageService);
+  private readonly dashboardService = inject(DashboardService);
+  
+  readonly loading = signal(false);
   
   readonly stats = signal({
     totalCases: 0,
@@ -517,6 +546,56 @@ export class DashboardComponent {
   readonly financial = signal({ avgIncome: 0, avgExpenses: 0, avgNetIncome: 0, totalDebt: 0 });
 
   readonly displayedColumns = ['type', 'total', 'fulfilled', 'pending'];
+
+  ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  loadDashboardData(): void {
+    this.loading.set(true);
+    this.dashboardService.getStatistics().pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
+      next: (data) => {
+        // Update summary stats
+        this.stats.set({
+          totalCases: data.summary.totalCases,
+          approved: {
+            count: data.summary.approved.count,
+            percentage: data.summary.approved.percentage
+          },
+          underReview: {
+            count: data.summary.underReview.count,
+            percentage: data.summary.underReview.percentage
+          },
+          totalNeeds: data.summary.totalNeeds,
+          unfulfilled: data.summary.unfulfilledNeeds,
+          unfulfilledPct: data.summary.unfulfilledPercentage
+        });
+
+        // Update needs distribution
+        this.needs.set(data.needsDistribution);
+
+        // Update status distribution
+        this.statusCounts.set(data.statusDistribution);
+
+        // Update geographic distribution
+        this.locations.set(data.geographicDistribution);
+
+        // Update financial statistics
+        this.financial.set({
+          avgIncome: Math.round(data.financialStatistics.avgIncome),
+          avgExpenses: Math.round(data.financialStatistics.avgExpenses),
+          avgNetIncome: Math.round(data.financialStatistics.avgNetIncome),
+          totalDebt: Math.round(data.financialStatistics.totalDebt)
+        });
+      },
+      error: (error) => {
+        console.error('Error loading dashboard data:', error);
+        // Keep default values on error
+      }
+    });
+  }
 }
 
 export { DashboardComponent as Dashboard };

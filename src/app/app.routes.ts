@@ -29,6 +29,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'register-organization',
+    loadComponent: () => import('./features/auth/register-organization.component').then((m) => m.RegisterOrganizationComponent),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./shared/not-found/not-found.component').then((m) => m.NotFoundComponent),

@@ -2,10 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
-export interface UserItem { id: number; fullName: string; role: string; email?: string; mobile?: string; active?: boolean; }
+export interface UserItem { id: number; fullName: string; role: string; username: string; email?: string; mobile?: string; active?: boolean; }
 export interface Paginated<T> { data: T[]; meta: { count: number; page: number; page_size: number; num_pages: number; }; }
-export interface CreateUserPayload { email: string; full_name: string; password: string; role: string; mobile?: string; is_active?: boolean; }
-export interface UpdateUserPayload { email: string; full_name: string; role: string; mobile?: string; is_active?: boolean; password?: string; }
+export interface CreateUserPayload { username: string; email?: string; full_name: string; password: string; role: string; mobile?: string; is_active?: boolean; }
+export interface UpdateUserPayload { username: string; email?: string; full_name: string; role: string; mobile?: string; is_active?: boolean; password?: string; }
 export interface CreateUserResponse { success: boolean; message: string; data: UserItem; errors: any; meta: any; }
 export interface UpdateUserResponse { success: boolean; message: string; data: UserItem; errors: any; meta: any; }
 
@@ -40,6 +40,7 @@ export class UserService {
         return {
           id: data.id,
           fullName: data.full_name,
+          username: data.username,
           email: data.email,
           mobile: data.mobile,
           role: data.role,

@@ -81,10 +81,51 @@ import { finalize } from 'rxjs';
                 }
               </div>
 
+              <!-- Username (Full Width) -->
+              <div class="space-y-1.5 md:col-span-2 lg:col-span-3">
+                <label class="block text-sm font-medium text-gray-700">
+                  اسم المستخدم <span class="text-error">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    formControlName="username"
+                    placeholder="أدخل اسم المستخدم"
+                    class="block w-full pr-10 pl-3 py-2 text-sm border rounded-lg transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+                           hover:border-gray-400"
+                    [class.border-error]="form.controls.username.invalid && form.controls.username.touched"
+                    [class.border-success]="form.controls.username.valid && form.controls.username.touched"
+                    [class.border-gray-300]="!form.controls.username.touched"
+                  />
+                </div>
+                @if (form.controls.username.hasError('required') && form.controls.username.touched) {
+                  <p class="text-xs text-error flex items-center gap-1 animate-slideInRTL">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    اسم المستخدم مطلوب
+                  </p>
+                }
+                @if (form.controls.username.hasError('serverError')) {
+                  <p class="text-xs text-error flex items-center gap-1 animate-slideInRTL">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    {{ form.controls.username.getError('serverError') }}
+                  </p>
+                }
+              </div>
+
               <!-- Email (Full Width) -->
               <div class="space-y-1.5 md:col-span-2 lg:col-span-3">
                 <label class="block text-sm font-medium text-gray-700">
-                  البريد الإلكتروني <span class="text-error">*</span>
+                  البريد الإلكتروني
                 </label>
                 <div class="relative">
                   <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -104,14 +145,6 @@ import { finalize } from 'rxjs';
                     [class.border-gray-300]="!form.controls.email.touched"
                   />
                 </div>
-                @if (form.controls.email.hasError('required') && form.controls.email.touched) {
-                  <p class="text-xs text-error flex items-center gap-1 animate-slideInRTL">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    البريد الإلكتروني مطلوب
-                  </p>
-                }
                 @if (form.controls.email.hasError('email') && form.controls.email.touched) {
                   <p class="text-xs text-error flex items-center gap-1 animate-slideInRTL">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -418,9 +451,13 @@ export class UserFormComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required]
     }),
+    username: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required]
+    }),
     email: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [Validators.email] // Email is optional, but if provided must be valid
     }),
     mobile: new FormControl<string>('', {
       nonNullable: true,
@@ -466,6 +503,7 @@ export class UserFormComponent implements OnInit {
         next: (user) => {
           this.form.patchValue({
             full_name: user.fullName,
+            username: user.username || '',
             email: user.email || '',
             mobile: user.mobile || '',
             role: user.role,
@@ -502,9 +540,14 @@ export class UserFormComponent implements OnInit {
     const { confirmPassword, ...formData } = this.form.getRawValue();
 
     // Remove password fields if empty in edit mode
-    const payload = this.isEditMode() && !formData.password
+    let payload: any = this.isEditMode() && !formData.password
       ? { ...formData, password: undefined }
       : formData;
+    
+    // Convert empty email string to undefined (optional field)
+    if (payload.email === '') {
+      payload.email = undefined;
+    }
 
     const request$ = this.isEditMode() && this.userId()
       ? this.userService.updateUser(this.userId()!, payload as UpdateUserPayload)
